@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		527B0CC71DDDA18B00014EC8 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527B0CC61DDDA18B00014EC8 /* main.swift */; };
+		527B0CCE1DDDA1A500014EC8 /* RegexHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527B0CCD1DDDA1A500014EC8 /* RegexHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,7 @@
 /* Begin PBXFileReference section */
 		527B0CC31DDDA18B00014EC8 /* ConvertToMp3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ConvertToMp3; sourceTree = BUILT_PRODUCTS_DIR; };
 		527B0CC61DDDA18B00014EC8 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		527B0CCD1DDDA1A500014EC8 /* RegexHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegexHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +59,7 @@
 		527B0CC51DDDA18B00014EC8 /* ConvertToMp3 */ = {
 			isa = PBXGroup;
 			children = (
+				527B0CCD1DDDA1A500014EC8 /* RegexHelper.swift */,
 				527B0CC61DDDA18B00014EC8 /* main.swift */,
 			);
 			path = ConvertToMp3;
@@ -121,6 +124,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				527B0CC71DDDA18B00014EC8 /* main.swift in Sources */,
+				527B0CCE1DDDA1A500014EC8 /* RegexHelper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
