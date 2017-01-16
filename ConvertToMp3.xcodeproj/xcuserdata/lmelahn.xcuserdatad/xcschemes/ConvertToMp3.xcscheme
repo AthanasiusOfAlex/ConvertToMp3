@@ -61,6 +61,12 @@
             ReferencedContainer = "container:ConvertToMp3.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "/Users/lmelahn/Desktop/classes\ copy/*.3gpp"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
