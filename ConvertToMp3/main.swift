@@ -56,7 +56,7 @@ case 1:
     let executableName = Path(arguments.first!).lastComponent
     
     print("usage:")
-    print("\(executableName) files-to-convert")
+    print("   \(executableName) files-to-convert")
     
     exit(1)
     
@@ -80,7 +80,7 @@ for pattern in patternList {
 
 func extractNumber(file: String) -> Int? {
     
-    let pattern = "Voice\\s+(\\d+)\\.3gpp"
+    let pattern = "[^\\d]+(\\d+)\\.(wav|3gpp|mp4)"
     let matches = file.matches(pattern)
     
     guard let match = matches.first else { return nil }
@@ -90,6 +90,8 @@ func extractNumber(file: String) -> Int? {
     
 }
 
+let asyncGroup = AsyncGroup()
+
 for file in fileList {
     
     guard file.isFile else { continue }
@@ -98,16 +100,41 @@ for file in fileList {
     
     let formattedNumber = String(format: "%02d", number)
     
-    let newFile = "logic-2016-nov-DD-\(formattedNumber).mp3"
+    
+    // Get the current month in a lowercased, three-letter code
+    let todaysDate = Date()
+    let formatter = DateFormatter()
+    
+    formatter.dateFormat = "MMM"
+    let currentMonth = formatter.string(from: todaysDate).lowercased()
+    
+    // Get the current day
+    formatter.dateFormat = "dd"
+    let currentDay = formatter.string(from: todaysDate)
+    
+    // Get the current year
+    formatter.dateFormat = "YYYY"
+    let currentYear = formatter.string(from: todaysDate)
+    
+    let newFile = "logic-\(currentYear)-\(currentMonth)-\(currentDay)-\(formattedNumber).mp3"
 
     // Run the file through ffmpeg.
     
-    let task = Process()
+    asyncGroup.background {
     
-    task.currentDirectoryPath = Path.current.path
-    task.launchPath = "/usr/local/bin/ffmpeg"
-    task.arguments = [ "-i", file.path, newFile ]
+        let task = Process()
+        
+        task.currentDirectoryPath = Path.current.path
+        task.launchPath = "/usr/local/bin/ffmpeg"
+        task.arguments = [ "-v", "0", "-y", "-i", file.path, "-codec:a", "libmp3lame", "-qscale:a", "5", newFile ]
+        
+        print("Processing file \(file.path)...")
+        task.launch()
+        print("Done processing file \(file.path)...")
+        
+    }
     
-    task.launch()
-
 }
+
+asyncGroup.wait()
+print("Finished processing all files.")

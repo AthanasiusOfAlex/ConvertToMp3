@@ -10,6 +10,7 @@
 		527B0CC71DDDA18B00014EC8 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527B0CC61DDDA18B00014EC8 /* main.swift */; };
 		527B0CCE1DDDA1A500014EC8 /* RegexHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527B0CCD1DDDA1A500014EC8 /* RegexHelper.swift */; };
 		527B0CD01DDDA51C00014EC8 /* PathKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527B0CCF1DDDA51C00014EC8 /* PathKit.swift */; };
+		52DDCA4B1E8440BE00CFB290 /* Async.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52DDCA4A1E8440BE00CFB290 /* Async.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -29,6 +30,7 @@
 		527B0CC61DDDA18B00014EC8 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		527B0CCD1DDDA1A500014EC8 /* RegexHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegexHelper.swift; sourceTree = "<group>"; };
 		527B0CCF1DDDA51C00014EC8 /* PathKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PathKit.swift; sourceTree = "<group>"; };
+		52DDCA4A1E8440BE00CFB290 /* Async.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Async.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +63,7 @@
 		527B0CC51DDDA18B00014EC8 /* ConvertToMp3 */ = {
 			isa = PBXGroup;
 			children = (
+				52DDCA4A1E8440BE00CFB290 /* Async.swift */,
 				527B0CCD1DDDA1A500014EC8 /* RegexHelper.swift */,
 				527B0CC61DDDA18B00014EC8 /* main.swift */,
 				527B0CCF1DDDA51C00014EC8 /* PathKit.swift */,
@@ -126,6 +129,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				52DDCA4B1E8440BE00CFB290 /* Async.swift in Sources */,
 				527B0CC71DDDA18B00014EC8 /* main.swift in Sources */,
 				527B0CD01DDDA51C00014EC8 /* PathKit.swift in Sources */,
 				527B0CCE1DDDA1A500014EC8 /* RegexHelper.swift in Sources */,
