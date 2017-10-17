@@ -651,16 +651,16 @@ extension Path : Sequence {
         public typealias Element = Path
         
         let path: Path
-        let directoryEnumerator: FileManager.DirectoryEnumerator
+        let directoryEnumerator: FileManager.DirectoryEnumerator?
         
         init(path: Path, options mask: DirectoryEnumerationOptions = []) {
             let options = FileManager.DirectoryEnumerationOptions(rawValue: mask.rawValue)
             self.path = path
-            self.directoryEnumerator = Path.fileManager.enumerator(at: path.url, includingPropertiesForKeys: nil, options: options)!
+            self.directoryEnumerator = Path.fileManager.enumerator(at: path.url, includingPropertiesForKeys: nil, options: options)
         }
         
         public func next() -> Path? {
-            let next = directoryEnumerator.nextObject()
+            let next = directoryEnumerator?.nextObject()
             
             if let next = next as? URL {
                 return Path(next.path)
@@ -670,7 +670,7 @@ extension Path : Sequence {
         
         /// Skip recursion into the most recently obtained subdirectory.
         public func skipDescendants() {
-            directoryEnumerator.skipDescendants()
+            directoryEnumerator?.skipDescendants()
         }
     }
     
@@ -765,8 +765,8 @@ internal func +(lhs: String, rhs: String) -> Path {
         rSlice = rSlice.filter { $0 != "." }.fullSlice
         
         // Eats up trailing components of the left and leading ".." of the right side
-        while lSlice.last != ".." && rSlice.first == ".." {
-            if (lSlice.count > 1 || lSlice.first != Path.separator) && !lSlice.isEmpty {
+        while lSlice.last != ".." && !lSlice.isEmpty && rSlice.first == ".." {
+            if lSlice.count > 1 || lSlice.first != Path.separator {
                 // A leading "/" is never popped
                 lSlice.removeLast()
             }
