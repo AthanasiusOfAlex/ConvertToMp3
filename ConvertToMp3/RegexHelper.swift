@@ -3,36 +3,37 @@
 //  RegexHelper
 //
 //  Created by Louis Melahn on 5/5/16.
-//  Copyright © 2016 Louis Melahn.
+//  Edited 10/17/17
+//  Copyright © 2016, 2017 Louis Melahn.
 //
 //  This file is licensed under the MIT license.
 //
 
 import Foundation
 
-public extension String {
+private extension String {
     
-    public func getCharacterFromIntIndex (_ i: Int) -> Character {
-        return self[self.characters.index(self.startIndex, offsetBy: i)]
+    func getCharacterFromIntIndex (_ i: Int) -> Character {
+        return self[self.index(self.startIndex, offsetBy: i)]
     }
     
-    public subscript (i: Int) -> String {
+    subscript (i: Int) -> String {
         
         assert(i >= 0, "Index is too small")
-        assert(i <= self.characters.count, "Index is too large")
+        assert(i <= self.count, "Index is too large")
         
-        return String(getCharacterFromIntIndex(i) as Character)
+        return String(getCharacterFromIntIndex(i))
     }
     
-    public subscript (range: Range<Int>) -> String {
+    subscript (range: Range<Int>) -> String {
         
-        return self[swiftRange(range)]
+        return String(self[swiftRange(range)])
         
     }
 }
 
 // MARK - Adds a property returning the range representing the whole string.
-public extension String {
+private extension String {
     
     /// Returns the range of the whole string.
     var wholeString: Range<String.Index> {
@@ -44,23 +45,23 @@ public extension String {
     /// Returns the range of the whole string, as an NSRange
     var wholeStringNsRange: NSRange {
         
-        return NSMakeRange(0, self.utf16.count)
+        return NSRange(self.wholeString, in: self)
         
     }
     
 }
 
 // MARK - Adds methods to convert between Swift String ranges and `NSRange`s and ranges of integers
-public extension String {
+private extension String {
     
     /// Returns a Swift-String-compatible range based on a range of integers
-    public func swiftRange (_ intRange: Range<Int>) -> Range<String.Index> {
+    func swiftRange (_ intRange: Range<Int>) -> Range<String.Index> {
         
         assert (intRange.lowerBound >= 0, "Start index is too small (less than 0)")
         
         var inputStartIndex = intRange.lowerBound
         var inputEndIndex = intRange.upperBound
-        let totalCharacters = self.characters.count
+        let totalCharacters = self.count
         
         // If the start index is greater than the number of characters,
         // reduce the start index to the number characters, so as to
@@ -79,67 +80,36 @@ public extension String {
             
         }
         
-        let outputStartIndex = characters.index(startIndex, offsetBy: inputStartIndex)
+        let outputStartIndex = self.index(startIndex, offsetBy: inputStartIndex)
         
-        let outputEndIndex = characters.index(outputStartIndex,
-                                              offsetBy: inputEndIndex - inputStartIndex)
+        let outputEndIndex = self.index(outputStartIndex,
+                                        offsetBy: inputEndIndex - inputStartIndex)
         
         return Range(outputStartIndex ..< outputEndIndex)
         
     }
     
     /// Returns a Swift-String-compatible range, based on an NSRange
-    public func swiftRange (_ nsRange: NSRange) -> Range<String.Index>? {
+    func swiftRange (_ nsRange: NSRange) -> Range<String.Index>? {
         
-        let utf16 = self.utf16
-        
-        guard
-            
-            let lowerBoundUTF16 = utf16.index(utf16.startIndex,
-                                              offsetBy: nsRange.location,
-                                              limitedBy: utf16.endIndex)
-            
-            else { return nil }
-        
-        guard
-            
-            let upperBoundUTF16 = utf16.index(lowerBoundUTF16,
-                                              offsetBy: nsRange.length,
-                                              limitedBy: utf16.endIndex)
-        
-            else { return nil }
-        
-        
-        guard
-            
-            let from = String.Index(lowerBoundUTF16, within: self),
-            let to = String.Index(upperBoundUTF16, within: self)
-            
-            else { return nil }
-        
-        return from ..< to
+        return Range(nsRange, in: self)
         
     }
     
     /// Returns an NSRange, based on a Swift-String-compatible range
-    public func nsRange(_ swiftRange: Range<String.Index>) -> NSRange {
+    func nsRange(_ swiftRange: Range<String.Index>) -> NSRange {
         
-        let utf16 = self.utf16
-        let lowerBound = String.UTF16View.Index(swiftRange.lowerBound, within: utf16)
-        let upperBound = String.UTF16View.Index(swiftRange.upperBound, within: utf16)
+        return NSRange(swiftRange, in: self)
         
-        return NSMakeRange(utf16.distance(from: utf16.startIndex, to: lowerBound), utf16.distance(from: lowerBound, to: upperBound))
-     
     }
-
+    
     /// Returns and NSRange, based on a range of integers
-    public func nsRange(_ intRange: Range<Int>) -> NSRange {
+    func nsRange(_ intRange: Range<Int>) -> NSRange {
         
         let swiftRange = self.swiftRange(intRange)
         return nsRange(swiftRange)
         
     }
-    
     
 }
 
@@ -147,14 +117,27 @@ public extension String {
 //        a pattern to match, and returns an Match object with all the matches
 public extension String {
     
-    fileprivate func nsMatches (_ regex: NSRegularExpression) -> [NSTextCheckingResult] {
+    /// This overload uses the default options.
+    /// - Parameters:
+    ///   - regex: The NSRegularExpression object.
+    ///
+    /// - Returns:
+    ///   An array of NSTextCheckingResult objects.
+    private func nsMatches (_ regex: NSRegularExpression) -> [NSTextCheckingResult] {
         return self.nsMatches(regex, options: [])
     }
     
-    fileprivate func nsMatches (_ regex: NSRegularExpression, options: NSRegularExpression.MatchingOptions) -> [NSTextCheckingResult] {
-        // NOTE that NSMakeRange counts using utf16 code points, not the total number of characters.
-        // Hence, I must give it self.utf16.count, NOT self.characters.count.
-        return regex.matches(in: self, options: options, range: NSMakeRange(0, self.utf16.count))
+    /// This method returns all the matches that result from a given regular expression.
+    /// It does low-level access to the NSRegularExpression API.
+    ///
+    /// - Parameters:
+    ///   - regex: The NSRegularExpression object.
+    ///   - options: The object containing the matching options.
+    ///
+    /// - Returns:
+    ///   An array of NSTextCheckingResult objects.
+    private func nsMatches (_ regex: NSRegularExpression, options: NSRegularExpression.MatchingOptions) -> [NSTextCheckingResult] {
+        return regex.matches(in: self, options: options, range:  self.wholeStringNsRange)
     }
     
     fileprivate func validateRegex(_ pattern: String) -> Bool {
@@ -173,16 +156,31 @@ public extension String {
     }
     
     /// Returns an Matches object based on a regex pattern.
-    /// Uses default regex and matching options.
+    /// Uses the default regex and matching options.
+    ///
+    /// - Parameters:
+    ///    - pattern: a string with the Regex pattern.
+    ///
+    /// - Returns:
+    ///   A Matches object.
+    ///
     public func matches(_ pattern: String) -> Matches {
         
         return matches(pattern, regexOptions: [], matchingOptions: [])
         
     }
     
-    /// Returns an Matches object based on a regex pattern.
+    /// Returns a Matches object based on a regex pattern.
     /// Uses matching options, the the regex options need to be specified.
     /// Equivalent to `String.matches(`_pattern_`, regexOptions: `_options_`, [])`.
+    ///
+    /// - Parameters:
+    ///    - pattern: a string with the regex pattern.
+    ///    - regexOptions: the regular expression options
+    ///
+    /// - Returns:
+    ///   A Matches object.
+    ///
     public func matches(_ pattern: String, regexOptions: NSRegularExpression.Options) -> Matches {
         
         return matches(pattern, regexOptions: regexOptions, matchingOptions: [])
@@ -190,20 +188,36 @@ public extension String {
     }
     
     /// Returns an Matches object based on a regex pattern
-    /// and an array of NSMatchingOptions.
+    /// regex options, and matching options.
+    ///
+    /// - Parameters:
+    ///    - pattern: a string with the regex pattern.
+    ///    - regexOptions: the regular expression options
+    ///    - matchingOptions: the the matching options
+    ///
+    /// - Returns:
+    ///   A Matches object.
+    ///
     public func matches(_ pattern: String,
-                   regexOptions: NSRegularExpression.Options,
-                   matchingOptions: NSRegularExpression.MatchingOptions) -> Matches {
+                        regexOptions: NSRegularExpression.Options,
+                        matchingOptions: NSRegularExpression.MatchingOptions) -> Matches {
         
         assert(validateRegex(pattern), "An invalid regex pattern was given: `\(pattern)`")
         
         let regex = try! NSRegularExpression(pattern: pattern, options: regexOptions)
         return matches(regex, options: matchingOptions)
     }
-
+    
     
     /// Returns an Matches object based on a regex pattern.
     /// Uses the default options.
+    ///
+    /// - Parameters:
+    ///    - pattern: a string with the regex pattern.
+    ///
+    /// - Returns:
+    ///   A Matches object.
+    ///
     public func matches(_ regex: NSRegularExpression) -> Matches {
         return matches(regex, options: [])
     }
@@ -219,9 +233,16 @@ public extension String {
 
 // MARK - Adds an `isMatchedBy` function to String for convenience.
 public extension String {
-
-    /// Returns `true` if `regex` matches the string (`self`).
+    
+    /// Tests if a string is matched by a given regular expression.
     /// This is the base implementation for all the rest.
+    /// - Parameters:
+    ///   - regex: an NSRegularExpression object
+    ///   - matchingOptions: the matching options
+    ///
+    /// - Returns:
+    /// Bool: `true` if `regex` matches the string (`self`); `false` otherwise.
+    ///
     public func isMatchedBy(_ regex: NSRegularExpression, matchingOptions: NSRegularExpression.MatchingOptions) -> Bool {
         
         let matches = self.matches(regex, options: matchingOptions)
@@ -229,28 +250,44 @@ public extension String {
         if let _ = matches.first {
             
             return true
-        
+            
         } else {
             
             return false
             
         }
-    
+        
     }
     
-    /// Returns `true` if `regex` matches the string (`self`).
+    /// Tests if a string is matched by a given regular expression.
     /// Uses a regex with the default matching options.
+    ///
+    /// - Parameters:
+    ///   - regex: an NSRegularExpression object
+    ///
+    /// - Returns:
+    ///   Bool: `true` if `regex` matches the string (`self`); `false` otherwise.
+    ///
     public func isMatchedBy(_ regex: NSRegularExpression) -> Bool {
         
         return isMatchedBy(regex, matchingOptions: [])
         
     }
     
-    /// Returns `true` if `regex` matches the string (`self`).
-    /// Uses a string and allows configuring the regex and matching options
+    /// Tests if a string is matched by a given regular expression.
+    /// Uses a string and allows configuring the regex and matching options.
+    ///
+    /// - Parameters:
+    ///   - pattern: the String containing the pattern
+    ///   - regexOptions: the regex options
+    ///   - matchingOptions: the matching options
+    ///
+    /// - Returns:
+    ///   Bool: `true` if `regex` matches the string (`self`); `false` otherwise.
+    ///
     public func isMatchedBy(_ pattern: String,
-                   regexOptions: NSRegularExpression.Options,
-                   matchingOptions: NSRegularExpression.MatchingOptions) -> Bool {
+                            regexOptions: NSRegularExpression.Options,
+                            matchingOptions: NSRegularExpression.MatchingOptions) -> Bool {
         
         assert(validateRegex(pattern), "Invalid regex pattern given: \(pattern)")
         
@@ -260,58 +297,100 @@ public extension String {
         
     }
     
-    /// Returns `true` if `regex` matches the string (`self`).
+    /// Tests if a string is matched by a given regular expression.
     /// Uses a string and allows configuring the regex options,
     /// but uses the default matching options
+    ///
+    /// - Parameters:
+    ///   - pattern: the String containing the pattern
+    ///   - regexOptions: the regex options
+    ///
+    /// - Returns:
+    ///   Bool: `true` if `regex` matches the string (`self`); `false` otherwise.
+    ///
     public func isMatchedBy(_ pattern: String, regexOptions: NSRegularExpression.Options) -> Bool {
         
         return isMatchedBy(pattern, regexOptions: regexOptions, matchingOptions: [])
         
     }
     
-    /// Returns `true` if `regex` matches the string (`self`).
+    /// Tests if a string is matched by a given regular expression.
     /// Uses a string with the default regex and matching options
+    ///
+    /// - Parameters:
+    ///   - pattern: the String containing the pattern
+    ///
+    /// - Returns:
+    ///   Bool: `true` if `regex` matches the string (`self`); `false` otherwise.
+    ///
     public func isMatchedBy(_ pattern: String) -> Bool {
         
         return isMatchedBy(pattern, regexOptions: [], matchingOptions: [])
         
     }
-
+    
 }
 
 // MARK - Adds a replaceAll function to String
 public extension String {
     
-    /// Does a replaceAll with the possibility of setting matching options.
+    /// Does a replaceAll using an NSRegularExpression with the possibility
+    /// of setting matching options.
+    ///
+    /// - Parameters:
+    ///   - regex: the NSRegularExpression object representing what to search for.
+    ///   - withTemplate: the template with which finds will be replaced.
+    ///   - usingMatchingOptions: the matching options that will be used.
+    ///
+    /// - Returns: a new String with all replacements made.
+    ///
     public func replaceAll (_ regex: NSRegularExpression,
                             withTemplate template: String,
                             usingMatchingOptions: NSRegularExpression.MatchingOptions)
         -> String {
-        
-        return regex.stringByReplacingMatches(in: self,
-                                              options: usingMatchingOptions,
-                                              range: self.wholeStringNsRange,
-                                              withTemplate: template)
-        
+            
+            return regex.stringByReplacingMatches(in: self,
+                                                  options: usingMatchingOptions,
+                                                  range: self.wholeStringNsRange,
+                                                  withTemplate: template)
+            
     }
     
-    /// Does a replaceAll using the default matching options.
+    /// Does a replaceAll using an NSRegularExpression object, with the default options.
+    ///
+    /// - Parameters:
+    ///   - regex: the NSRegularExpression object representing what to search for
+    ///   - withTemplate: the template with which finds will be replaced.
+    ///
+    /// - Returns: a new String with all replacements made.
+    ///
     public func replaceAll(_ regex: NSRegularExpression,
                            withTemplate template: String)
         -> String {
-        
-        return replaceAll(regex,
-                          withTemplate: template,
-                          usingMatchingOptions: [])
-        
+            
+            return replaceAll(regex,
+                              withTemplate: template,
+                              usingMatchingOptions: [])
+            
     }
     
-    /// Does a replaceAll using a string pattern, with the
-    /// possibility of setting regex and matching options.
+    /// Does a replaceAll using a String pattern, with the possibility of setting
+    /// regex and matching options.
+    ///
+    /// - Parameters:
+    ///   - pattern: the String representing what to search for
+    ///   - withTemplate: the template with which finds will be replaced.
+    ///   - usingRegexOptions: the regex options.
+    ///   - usingMatchingOptions: the matching options.
+    ///
+    /// - Returns: a new String with all replacements made.
+    ///
     public func replaceAll(_ pattern: String,
                            withTemplate: String,
                            usingRegexOptions: NSRegularExpression.Options,
                            usingMatchingOptions: NSRegularExpression.MatchingOptions) -> String {
+        
+        assert(validateRegex(pattern), "Invalid regex pattern given: \(pattern)")
         
         let regex = try! NSRegularExpression(pattern: pattern, options: usingRegexOptions)
         
@@ -319,9 +398,16 @@ public extension String {
         
     }
     
-    /// Does a replaceAll using a string pattern, with
-    /// the possibility of setting the regex options, but
-    /// using the default matching options
+    /// Does a replaceAll using a String pattern, with the possibility of setting
+    /// regex options, and using the default matching options.
+    ///
+    /// - Parameters:
+    ///   - pattern: the String representing what to search for
+    ///   - withTemplate: the template with which finds will be replaced.
+    ///   - usingRegexOptions: the regex options.
+    ///
+    /// - Returns: a new String with all replacements made.
+    ///
     public func replaceAll(_ pattern: String,
                            withTemplate: String,
                            usingRegexOptions: NSRegularExpression.Options) -> String {
@@ -329,16 +415,24 @@ public extension String {
         return replaceAll(pattern, withTemplate: withTemplate, usingRegexOptions: usingRegexOptions, usingMatchingOptions: [])
         
     }
-
-    /// Does a replaceAll using a string pattern, using all the default options.
+    
+    /// Does a replaceAll using a String pattern, with all the default options.
+    ///
+    /// - Parameters:
+    ///   - pattern: the String representing what to search for
+    ///   - withTemplate: the template with which finds will be replaced.
+    ///
+    /// - Returns: a new String with all replacements made.
+    ///
     public func replaceAll(_ pattern: String, withTemplate: String) -> String {
         
         return replaceAll(pattern, withTemplate: withTemplate, usingRegexOptions: [])
-
+        
     }
     
 }
 
+/// Represents the matches found after searching for a regular expression.
 public struct Matches {
     
     fileprivate var nsMatches: [NSTextCheckingResult]
@@ -407,32 +501,37 @@ extension Matches : Sequence {
     }
 }
 
+/// Represents each individual match.
+///
 public struct Match {
     
+    /// Everything in the string previous to the match.
     public var pre: String {
         
         let range = input.swiftRange(nsMatch_.range)
         assert(range != nil, "A match was given, but the range it returned was nil")
         
-        return input[input.startIndex..<range!.lowerBound]
+        return String(input[input.startIndex..<range!.lowerBound])
         
     }
     
+    /// Everything in the string after the match.
     public var post: String {
         
         let range = input.swiftRange(nsMatch_.range)
         assert(range != nil, "A match was given, but the range it returned was nil")
         
-        return input[range!.upperBound..<input.endIndex]
+        return String(input[range!.upperBound..<input.endIndex])
         
     }
     
+    /// The text actually matched.
     public var hit: String {
         
         let range = input.swiftRange(nsMatch_.range)
         assert(range != nil, "A match was given, but the range it returned was nil")
         
-        return input[range!]
+        return String(input[range!])
     }
     
     fileprivate var input: String
@@ -465,8 +564,8 @@ extension Match : Collection {
         let range = input.swiftRange(nsMatch_.rangeAt(i))
         assert(range != nil, "An invalid index was given")
         
-        return input[range!]
-
+        return String(input[range!])
+        
     }
     
 }
@@ -530,7 +629,10 @@ extension Match {
     
     public var range: Range<String.Index> {
         
-        return input.swiftRange(nsMatch_.range)!
+        let range = input.swiftRange(nsMatch_.range)
+        assert(range != nil, "An invalid index was given")
+        
+        return range!
         
     }
     
@@ -599,7 +701,7 @@ extension String {
     
     /// This function will attempt to break a string in two
     /// at the first opportunity, eliminating the string that
-    /// matches `sepearatorRegex`. Returns a tuple with the 
+    /// matches `sepearatorRegex`. Returns a tuple with the
     /// front part that has been "broken off" and the remaininder
     /// of the string. For instance,
     /// `"aaaa##aaaaa#aaa".splitFirst("#+")` will return `("aaaa", "aaaaa#aaa")`
@@ -639,8 +741,9 @@ extension String {
     /// Returns a `String.Splitter` object that represents the pieces
     /// of a string that has been split according to white space (including
     /// newlines and tabs). The `String.Splitter` can be used in a `for` loop
-    /// or converted into an array by using the appropriate cast 
+    /// or converted into an array by using the appropriate cast
     /// (e.g., `Array(mySplitter)`).
+    ///
     public var split: String.Splitter {
         
         return self.split(usingSeprator: "\\s+")
@@ -658,7 +761,7 @@ extension String.Splitter: Collection {
         return i + 1
         
     }
-
+    
     
     public var startIndex : Int { return 0 }
     
