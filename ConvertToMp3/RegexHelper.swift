@@ -561,7 +561,7 @@ extension Match : Collection {
     
     public subscript (i: Int) -> String {
         
-        let range = input.swiftRange(nsMatch_.rangeAt(i))
+        let range = input.swiftRange(nsMatch_.range(at: i))
         assert(range != nil, "An invalid index was given")
         
         return String(input[range!])

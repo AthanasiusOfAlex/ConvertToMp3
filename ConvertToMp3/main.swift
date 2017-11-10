@@ -68,9 +68,7 @@ default: break
 
 var fileList = [Path]()
 
-let patternList = arguments[1..<arguments.count]
-
-for pattern in patternList {
+for pattern in arguments[1...] {
     
     fileList.append(contentsOf: Path.glob(pattern))
     
